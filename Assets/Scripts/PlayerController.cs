@@ -3,71 +3,120 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [Header("Movement Controll")]
-    public float Speed;
+    [Header("Movement")]
+    public float moveSpeed;
     public float jumpForce;
-    public float Gravity;
+    public float jumpCooldown;
+    public float airMultipler;
+    bool readyToJump;
 
+    [Header("Key Binds")]
+    public KeyCode jumpKey = KeyCode.Space;
 
-    [Header("Ground Setting")]
-    public Transform GroundCheck;
-    public float groundDistace;
+    public float groundDrag;
+
+    [Header("Ground Check")]
+    public float playerHeight;
     public LayerMask groundMask;
-
-
-    [Header("Boolen")]
     bool isGrounded;
 
+    public Transform Orientation;
 
-    [Header("Refrences")]
+    public float horizontalInput;
+    public float verticalInput;
+
+    Vector3 movementDirection;
+
     public Rigidbody playerrb;
-
 
     void Awake()
     {
-        playerrb = GetComponent<Rigidbody>();
+        
     }
     void Start()
     {
-        playerrb = GetComponent<Rigidbody>(); 
+        playerrb = GetComponent<Rigidbody>();
+        playerrb.freezeRotation = true;
     }
     void Update()
     {
-       
-        isGrounded = Physics.CheckSphere(
-            GroundCheck.position,
-            groundDistace,
-            groundMask
-        );
+        // Ground Check
 
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+        isGrounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, groundMask);
+
+        MyInput();
+        SpeedControl();
+
+        // Handle drag
+        if (isGrounded)
         {
-            playerrb.linearVelocity = new Vector3(
-                playerrb.linearVelocity.x,
-                jumpForce,
-                playerrb.linearVelocity.z
-            );
+            playerrb.linearDamping = groundDrag;
+        }
+        else
+        {
+            playerrb.linearDamping = 0;
         }
     }
-
     void FixedUpdate()
     {
-        PlayerControll();
+        playerMovement();
     }
+    void MyInput()
+    {
+        horizontalInput = Input.GetAxisRaw("Horizontal");
+        verticalInput = Input.GetAxisRaw("Vertical");
 
-   void PlayerControll()
-   {
+        // When Jump
+        if(Input.GetKey(jumpKey) && readyToJump && isGrounded)
+        {
+            readyToJump = false;
+
+            Jump();
+
+            Invoke(nameof(ResetJump), jumpCooldown);
+        }
+    }
+    void playerMovement()
+    {
+        movementDirection = Orientation.forward * verticalInput + Orientation.right * horizontalInput;
+
+        //playerrb.AddForce(movementDirection.normalized * moveSpeed * 10f , ForceMode.Force);
+
+        // On ground
+        if(isGrounded)
+        {
+            playerrb.AddForce(movementDirection.normalized * moveSpeed * 10f, ForceMode.Force);
+        }
+
+        // In air
+        else if(!isGrounded)
+        {
+            playerrb.AddForce(movementDirection.normalized * moveSpeed * 10f * airMultipler, ForceMode.Force);
+        }
+            
+
         
+    }
+    void SpeedControl()
+    {
+        Vector3 flatVel = new Vector3(playerrb.linearVelocity.x, 0, playerrb.linearVelocity.z);
 
-        float moveH = Input.GetAxis("Horizontal");
-        float moveZ = Input.GetAxis("Vertical");
+        // Limit Velocity if needed
+        if(flatVel.magnitude > moveSpeed)
+        {
+           Vector3 limitedVel =  flatVel.normalized * moveSpeed;
+            playerrb.linearVelocity = new Vector3(limitedVel.x, playerrb.linearVelocity.y,limitedVel.z);
+        }
+    }
+    void Jump()
+    {
+        // Reaset y velocity 
+        playerrb.linearVelocity = new Vector3(playerrb.linearVelocity.x, 0, playerrb.linearVelocity.z);
 
-        playerrb.linearVelocity = new Vector3 (moveH * Speed,0, moveZ*Speed) ;
-
-
-        
-
-
-       
-   } 
+        playerrb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
+    }
+    void ResetJump()
+    {
+        readyToJump = true;
+    }
 }
