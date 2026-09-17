@@ -24,7 +24,7 @@ public class PlayerController : MonoBehaviour
     [Header("Key Binds")]
     public KeyCode jumpKey = KeyCode.Space;
     public KeyCode sprintKey = KeyCode.LeftShift;
-    public KeyCode crouchKey = KeyCode.LeftControl;
+   // public KeyCode crouchKey = KeyCode.LeftControl;
 
     public float groundDrag;
 
@@ -47,7 +47,7 @@ public class PlayerController : MonoBehaviour
     public enum MovementState
     {
         walking,
-        crouching,
+       // crouching,
         sprinting,
         air
     }
@@ -108,25 +108,25 @@ public class PlayerController : MonoBehaviour
 
             Invoke(nameof(ResetJump), jumpCooldown);
         }
-        // When Crouch
-        if (Input.GetKeyDown(crouchKey))
-        {
-            transform.localScale = new Vector3(transform.localScale.x, crouchYScale, transform.localScale.z);
-            playerrb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
-        }
-        else if (Input.GetKeyUp(crouchKey))
-        {
-            transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
-        }
+        //// When Crouch
+        //if (Input.GetKeyDown(crouchKey))
+        //{
+        //    transform.localScale = new Vector3(transform.localScale.x, crouchYScale, transform.localScale.z);
+        //    playerrb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
+        //}
+        //else if (Input.GetKeyUp(crouchKey))
+        //{
+        //    transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
+        //}
     }
     void stateHandler()
     {
-        // Mode - Crouching
-        if (Input.GetKey(crouchKey))
-        {
-            state = MovementState.crouching;
-            moveSpeed = crouchSpeed;
-        }
+        //// Mode - Crouching
+        //if (Input.GetKey(crouchKey))
+        //{
+        //    state = MovementState.crouching;
+        //    moveSpeed = crouchSpeed;
+        //}
 
         // Mode - Sprinting
         if (Input.GetKey(sprintKey) && isGrounded)
